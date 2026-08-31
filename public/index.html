@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>X Downloader</title>
+<style>
+  :root{
+    --bg:#000; --card:#16181c; --card2:#1d2126; --line:#2f3336;
+    --text:#e7e9ea; --dim:#71767b; --blue:#1d9bf0; --blue-b:#e8f5fe;
+    --danger:#f4212e; --radius:16px;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg); color:var(--text);
+    font:16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    min-height:100vh; padding-bottom:env(safe-area-inset-bottom);
+  }
+  .wrap{max-width:600px;margin:0 auto;padding:20px 16px 60px;}
+  header{display:flex;align-items:center;gap:10px;padding:6px 2px 18px;}
+  .logo{width:34px;height:34px;border-radius:9px;background:var(--blue);display:flex;align-items:center;justify-content:center;flex:none;}
+  .logo svg{width:20px;height:20px;fill:#fff;}
+  header h1{font-size:19px;margin:0;font-weight:800;letter-spacing:-.3px;}
+  header .sub{font-size:12px;color:var(--dim);font-weight:500;}
+  .hint{color:var(--dim);font-size:13px;margin:4px 2px 12px;}
+  .row{display:flex;gap:10px;}
+  input[type=text]{
+    flex:1;background:var(--card);border:1px solid var(--line);border-radius:12px;
+    color:var(--text);font-size:15px;padding:14px 14px;outline:none;min-width:0;
+  }
+  input[type=text]:focus{border-color:var(--blue);}
+  button{
+    border:0;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;
+    padding:14px 20px;background:var(--blue);color:#fff;
+  }
+  button:active{transform:scale(.97);}
+  button:disabled{opacity:.55;cursor:default;}
+  .spinner{width:18px;height:18px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:inline-block;vertical-align:-3px;margin-right:8px;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-top:20px;}
+  .meta{display:flex;gap:12px;margin-bottom:14px;}
+  .thumb{width:64px;height:64px;border-radius:12px;object-fit:cover;background:var(--card2);flex:none;}
+  .meta h2{font-size:15px;margin:0 0 4px;line-height:1.35;font-weight:700;}
+  .meta .author{font-size:13px;color:var(--blue);font-weight:600;margin-bottom:4px;}
+  .meta .dims{font-size:12px;color:var(--dim);}
+  video{width:100%;border-radius:12px;background:#000;margin-bottom:12px;max-height:70vh;}
+  .qrow{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
+  .qrow .q{
+    border:1px solid var(--line);background:var(--card2);color:var(--text);
+    border-radius:999px;padding:9px 14px;font-size:13px;font-weight:600;cursor:pointer;
+  }
+  .qrow .q.sel{border-color:var(--blue);color:var(--blue-b);background:rgba(29,155,240,.12);}
+  .dl{
+    display:flex;align-items:center;justify-content:center;gap:8px;width:100%;
+    background:var(--blue);color:#fff;border-radius:12px;font-size:16px;font-weight:800;
+    padding:15px;text-decoration:none;
+  }
+  .dl svg{width:18px;height:18px;fill:#fff;flex:none;}
+  .photos{margin-top:14px;}
+  .photos .ph{width:100%;border-radius:12px;margin-top:10px;}
+  .photos a{display:block;text-align:center;margin-top:6px;color:var(--blue);font-weight:600;font-size:14px;text-decoration:none;}
+  .err{background:rgba(244,33,46,.1);border:1px solid rgba(244,33,46,.4);color:#ff7a84;border-radius:12px;padding:12px 14px;margin-top:20px;font-size:14px;}
+  .note{color:var(--dim);font-size:12px;margin-top:10px;text-align:center;}
+  footer{margin-top:34px;text-align:center;color:var(--dim);font-size:12px;line-height:1.7;}
+  footer .dot{color:var(--card2);margin:0 4px;}
+  .badge{display:inline-flex;align-items:center;gap:5px;color:var(--dim);font-size:11px;margin-left:6px;}
+  .ok{color:#3ba55d;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.9 2H22l-6.97 7.97L23.5 22h-6.44l-5.03-6.58L6.28 22H3.18l7.45-8.52L2 2h6.6l4.56 6.03L18.9 2zm-1.12 18h1.73L7.63 3.8H5.78L17.78 20z"/></svg>
+    </div>
+    <div>
+      <h1>X Video Downloader <span class="badge" id="statusBadge"><span class="dot">●</span> self-hosted</span></h1>
+      <div class="sub">Paste any X / Twitter link. Get the video. Save it.</div>
+    </div>
+  </header>
+
+  <div class="hint">Works with x.com and twitter.com links — video tweets, GIFs and images.</div>
+
+  <form id="form" autocomplete="off">
+    <div class="row">
+      <input id="url" type="text" inputmode="url" placeholder="https://x.com/username/status/123456789…" required>
+      <button id="go" type="submit">Get video</button>
+    </div>
+  </form>
+
+  <div id="out"></div>
+
+  <footer>
+    Self-hosted X downloader · not affiliated with X Corp<br>
+    For personal use only — respect content rights
+  </footer>
+</div>
+
+<script>
+const $ = (s) => document.querySelector(s);
+const out = $('#out');
+const form = $('#form');
+const input = $('#url');
+const goBtn = $('#go');
+
+function humanSize(n){
+  if(!n || n < 0) return '';
+  if(n < 1048576) return (n/1024).toFixed(0) + ' KB';
+  return (n/1048576).toFixed(1) + ' MB';
+}
+function fmtDur(sec){
+  if(!sec) return '';
+  sec = Math.round(sec);
+  const m = Math.floor(sec/60), s = sec%60;
+  return m + ':' + String(s).padStart(2,'0');
+}
+function esc(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+let state = null;
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const url = input.value.trim();
+  if(!url) return;
+  out.innerHTML = '';
+  goBtn.disabled = true;
+  goBtn.innerHTML = '<span class="spinner"></span>Fetching…';
+  try {
+    const r = await fetch('/api/extract', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({url})
+    });
+    const data = await r.json().catch(() => ({}));
+    if(!r.ok) throw new Error(data.error || ('HTTP ' + r.status));
+    render(data);
+  } catch(err) {
+    out.innerHTML = '<div class="err">' + esc(err.message) + '</div>';
+  } finally {
+    goBtn.disabled = false;
+    goBtn.textContent = 'Get video';
+  }
+});
+
+function render(d){
+  state = d;
+  const vids = d.videos || [];
+  const best = d.videos[0] || null;
+  const dims = [
+    d.uploader ? d.author_disp : '',
+    d.duration ? fmtDur(d.duration) : ''
+  ].filter(Boolean).join(' · ');
+
+  const q = vids.length
+    ? vids.map((v,i) => {
+        const sz = humanSize(v.filesize);
+        return '<button class="q' + (i===0?' sel':'') + '" data-i="' + i + '">' + esc(v.label) + (sz ? ' · ' + sz : '') + '</button>';
+      }).join('')
+    : '';
+
+  let video = '';
+  if(best){
+    video = '<video id="player" controls playsinline preload="metadata" src="' + esc(best.url) + '"></video>';
+  }
+
+  const photos = (d.photos || []).map((p,i) =>
+    '<img class="ph" loading="lazy" src="' + esc(p.thumb || p.url) + '" alt="">' +
+    '<a href="/dl?url=' + encodeURIComponent(p.url) + '&name=' + encodeURIComponent((d.uploader||'image') + '-' + i) + '.jpg">Download image ' + (i+1) + '</a>'
+  ).join('');
+
+  out.innerHTML =
+    '<div class="card">' +
+      '<div class="meta">' +
+        (d.thumbnail ? '<img class="thumb" src="' + esc(d.thumbnail) + '" alt="">' : '<div class="thumb"></div>') +
+        '<div style="min-width:0">' +
+          '<div class="author">' + esc(d.uploader || '') + '</div>' +
+          '<h2>' + esc((d.title||'').slice(0,160)) + '</h2>' +
+          '<div class="dims">' + esc(dims) + (d.source ? ' · via ' + d.source : '') + '</div>' +
+        '</div>' +
+      '</div>' +
+      video +
+      (vids.length ? '<div class="qrow">' + q + '</div>' : '') +
+      (vids.length ? '<a class="dl" id="dlbtn" href="#" download>' +
+        '<svg viewBox="0 0 24 24"><path d="M12 16l-5.5-5.5 1.4-1.4 2.6 2.6V3h3v8.7l2.6-2.6 1.4 1.4L12 16zm-7 3h14v2H5v-2z"/></svg>' +
+        'Download' + (best ? ' ' + esc(best.label) : '') + '</a>' : '') +
+      (d.hls && d.hls.length && !vids.length ? '<a class="dl" href="/dl?v=' + esc(d.id) + '&fid=' + esc(d.hls[0].fid) + '&name=' + encodeURIComponent(d.uploader||'video') + '">Download (HLS)</a>' : '') +
+      (photos ? '<div class="photos">' + photos + '</div>' : '') +
+    '</div>' +
+    '<div class="note">Tap Download to save to your device · long-press video to save from player</div>';
+
+  const qbtns = out.querySelectorAll('.q');
+  qbtns.forEach(b => b.addEventListener('click', () => {
+    qbtns.forEach(x => x.classList.remove('sel'));
+    b.classList.add('sel');
+    const i = +b.dataset.i;
+    const v = state.videos[i];
+    const player = $('#player');
+    if(player) player.src = v.url;
+    const dl = $('#dlbtn');
+    if(dl){
+      const name = encodeURIComponent((state.uploader||'video') + ' - ' + (state.title||'video').slice(0,60) + ' (' + v.label + ')');
+      dl.href = '/dl?url=' + encodeURIComponent(v.url) + '&name=' + name;
+      dl.textContent = 'Download ' + v.label;
+    }
+  }));
+
+  if(best){
+    const dl = $('#dlbtn');
+    dl.href = '/dl?url=' + encodeURIComponent(best.url) + '&name=' + encodeURIComponent((d.uploader||'video') + ' - ' + (d.title||'video').slice(0,60) + ' (' + best.label + ')');
+  }
+}
+
+// health badge
+fetch('/api/status').then(r=>r.json()).then(s=>{
+  const b = $('#statusBadge');
+  if(s.ok) b.innerHTML = '<span class="ok">●</span> online · yt-dlp ' + (s.ytdlp||'?') + (s.ffmpeg.startsWith('ffmpeg') ? '' : ' · ffmpeg MISSING');
+}).catch(()=>{});
+</script>
+</body>
+</html>

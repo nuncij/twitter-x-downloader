@@ -1,0 +1,6 @@
+# local deploy target — NOT committed (contains your server address)
+.deploy.local
+
+node_modules/
+.DS_Store
+*.log
