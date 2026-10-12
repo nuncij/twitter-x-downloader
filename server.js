@@ -170,7 +170,7 @@ function extractWithYtdlp(input) {
         height: heightOf(f),
         ext: f.ext || 'mp4',
         tbr: f.tbr || f.vbr || 0,
-        filesize: f.filesize || f.filesize_approx || null,
+        filesize: f.filesize || null, // filesize_approx is from X's advertised bitrate, ~3x too high
         url: f.url,
       });
     }
